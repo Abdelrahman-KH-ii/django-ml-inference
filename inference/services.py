@@ -16,15 +16,11 @@ def _load_raw():
     return joblib.load(MODEL_PATH)
 
 def _resolve_model_and_meta(raw) -> (Any, Dict[str, Any]):
-    """
-    يرجّع (model, meta)
-    - لو raw قاموس: يلقط 'pipeline' كموديل و 'feature_columns' كأسماء أعمدة إن وُجدت
-    - لو raw موديل مباشرة: يرجّعه كما هو
-    """
+   
     meta: Dict[str, Any] = {}
     model = raw
     if isinstance(raw, dict):
-        # جرّب المفاتيح الشائعة
+        
         for key in ("pipeline", "model", "estimator"):
             if key in raw:
                 model = raw[key]
@@ -32,11 +28,11 @@ def _resolve_model_and_meta(raw) -> (Any, Dict[str, Any]):
         else:
             raise ValueError(f"Model dict found but no supported key. Available keys: {list(raw.keys())}")
 
-        # خُد أسماء الأعمدة لو موجودة
+        
         if "feature_columns" in raw and isinstance(raw["feature_columns"], (list, tuple)):
             meta["feature_names"] = list(map(str, raw["feature_columns"]))
 
-    # لو الموديل فيه أسماء أعمدة من sklearn
+    
     names = getattr(model, "feature_names_in_", None)
     if names is not None and not meta.get("feature_names"):
         try:
@@ -44,7 +40,7 @@ def _resolve_model_and_meta(raw) -> (Any, Dict[str, Any]):
         except Exception:
             pass
 
-    # عدد الأعمدة المتوقع من sklearn
+  
     n_features = getattr(model, "n_features_in_", None)
     if n_features is not None:
         meta["expected_n_features"] = int(n_features)
@@ -78,12 +74,12 @@ def _to_model_input(features: List[float]):
     expected = meta.get("expected_n_features")
     names = meta.get("feature_names")
 
-    # تحقق من العدد
+    
     if expected is not None and len(features) != expected:
         raise ValueError(f"Feature length mismatch. Expected {expected}, got {len(features)}.")
 
     if names is not None:
-        # لازم يساوي الطول
+        
         if len(features) != len(names):
             raise ValueError(
                 f"Feature length mismatch. Expected {len(names)} features ({names}), got {len(features)}."
@@ -94,17 +90,17 @@ def _to_model_input(features: List[float]):
             raise ImportError("pandas is required to pass named features. Install pandas.") from e
         return pd.DataFrame([features], columns=names)
 
-    # fallback
+    
     return [features]
 
 def predict(features: List[float]) -> Dict[str, Any]:
     model, _ = load_model_and_meta()
     X = _to_model_input(features)
 
-    # التنبؤ
+ 
     y = model.predict(X)[0]
 
-    # الثقة (لو متاحة)
+
     confidence = None
     if hasattr(model, "predict_proba"):
         try:
@@ -113,6 +109,6 @@ def predict(features: List[float]) -> Dict[str, Any]:
         except Exception:
             confidence = None
 
-    # رجّع نوع قابل للتسلسل JSON
+    
     label_out = float(y) if isinstance(y, (int, float)) else str(y)
     return {"label": label_out, "confidence": confidence}
