@@ -15,7 +15,7 @@ from .services import predict as do_predict, model_signature
 
 
 class HealthView(APIView):
-    """بنج صحي بسيط"""
+   
     authentication_classes: list = []
     permission_classes: list = []
 
@@ -28,7 +28,7 @@ class HealthView(APIView):
 
 
 class ModelInfoView(APIView):
-    """Endpoint للتشخيص: يطبع مواصفات الموديل."""
+    
     authentication_classes: list = []
     permission_classes: list = []
 
@@ -45,12 +45,7 @@ class ModelInfoView(APIView):
 
 @method_decorator(csrf_exempt, name="dispatch")  # للتجربة محليًا من Swagger بدون CSRF
 class PredictView(APIView):
-    """
-    يقبل features كـ:
-      - Dict بالمفاتيح الخام: {"features": {"arrival_date_year": 2016, "arrival_date_month": "January", ...}}
-      - أو List بنفس ترتيب الأعمدة الخام: {"features": [2016, "January", ...]}
-    السيرفر يطبّق نفس الـ preprocessing المستخدم في التدريب ثم يعمل التنبؤ.
-    """
+
     authentication_classes: list = []
     permission_classes: list = []
 
@@ -102,7 +97,7 @@ class PredictView(APIView):
         description="Accepts raw features as a dict (preferred) or list (ordered). Server applies training preprocessing.",
     )
     def post(self, request):
-        # 1) هات ترتيب الأعمدة الخام من توقيع الموديل
+    # 1) هات ترتيب الأعمدة الخام من توقيع الموديل
         try:
             sig: Dict[str, Any] = model_signature()
             expected_cols: Optional[List[str]] = sig.get("feature_columns")
@@ -111,7 +106,7 @@ class PredictView(APIView):
         except Exception as e:
             return Response({"error": "model_introspection_failed", "detail": str(e)}, status=500)
 
-        # 2) تحقّق من الـ input (dict أو list) بالاعتماد على expected_columns
+       
         serializer = PredictSerializer(data=request.data, context={"expected_columns": expected_cols})
         if not serializer.is_valid():
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -119,13 +114,13 @@ class PredictView(APIView):
         try:
             payload: Union[Dict[str, Any], List[Any]] = serializer.validated_data["features"]
 
-            # 3) preprocessing داخلي (يبني DataFrame + reindex + transform عبر نفس الـ pipeline)
+            
             X = preprocess.run(payload, expected_columns=expected_cols)
 
-            # 4) التنبؤ
+            
             y = do_predict(X)
 
-            # 5) postprocess (تحويل إلى label/confidence مثلًا)
+           
             out = postprocess.run(y)
             return Response(out, status=200)
 
