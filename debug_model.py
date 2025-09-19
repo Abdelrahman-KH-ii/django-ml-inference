@@ -19,7 +19,6 @@ info = {
     "num_cols": num_cols,
     "cat_cols": cat_cols,
 }
-
 # حاول نطلع قيم OneHotEncoder المسموح بها + handle_unknown
 cat_values_map = {}
 handle_unknown = None
@@ -53,7 +52,7 @@ except Exception as e:
 info["allowed_categories"] = cat_values_map
 info["onehot_handle_unknown"] = handle_unknown
 
-# ابن عينة Features صحيحة بالترتيب (أرقام=0.0 كاتيجوري=أول قيمة مسموحة)
+
 sample = []
 for col in feature_cols:
     if col in num_cols:
@@ -66,7 +65,7 @@ for col in feature_cols:
 
 payload = {"features": sample}
 
-# اكتب الملفات
+
 (OUT / "model_info.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
 (OUT / "predict_template.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
