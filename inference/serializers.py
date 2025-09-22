@@ -1,4 +1,4 @@
-﻿# inference/serializers.py
+
 from typing import List, Optional, Union, Dict, Any
 from rest_framework import serializers
 
