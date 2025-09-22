@@ -15,6 +15,6 @@ def run(x: list | Dict[str, Any], expected_columns=None, **kwargs) -> List[float
             try:
                 processed.append(float(v))
             except ValueError:
-                # لو نص، حوّله 0 أو استخدم Encoding مناسب
+                
                 processed.append(0.0)
     return processed
